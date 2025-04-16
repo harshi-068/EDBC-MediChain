@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Patient Data DApp</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap for styling -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+  <style>
+    body {
+      background: #f8f9fa;
+      padding-top: 30px;
+    }
+    .card {
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+    }
+    .btn {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2 class="text-center mb-4">Patient Data Storage DApp</h2>
+
+  <!-- Connection Status -->
+  <div class="alert alert-info text-center" id="status">Connecting to MetaMask...</div>
+
+  <!-- Registration Form -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">Register Patient</div>
+    <div class="card-body">
+      <form id="registerForm">
+        <div class="mb-3">
+          <input type="text" id="name" class="form-control" placeholder="Patient Name" required>
+        </div>
+        <div class="mb-3">
+          <input type="number" id="age" class="form-control" placeholder="Age" required>
+        </div>
+        <div class="mb-3">
+          <input type="text" id="gender" class="form-control" placeholder="Gender" required>
+        </div>
+        <div class="mb-3">
+          <input type="text" id="diagnosis" class="form-control" placeholder="Diagnosis" required>
+        </div>
+        <button type="submit" class="btn btn-success">Register</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Retrieve Patient Info -->
+  <div class="card">
+    <div class="card-header bg-secondary text-white">View Patient Info</div>
+    <div class="card-body">
+      <div class="mb-3">
+        <input type="text" id="searchAddress" class="form-control" placeholder="Enter Ethereum Address">
+      </div>
+      <button class="btn btn-info mb-3" onclick="getPatient()">Get Info</button>
+
+      <div id="patientInfo" class="border p-3 bg-light d-none">
+        <h5>Patient Details:</h5>
+        <p><strong>Name:</strong> <span id="pName"></span></p>
+        <p><strong>Age:</strong> <span id="pAge"></span></p>
+        <p><strong>Gender:</strong> <span id="pGender"></span></p>
+        <p><strong>Diagnosis:</strong> <span id="pDiagnosis"></span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let web3;
+  let account;
+  let contract;
+
+  const contractABI =  [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "patientAddress",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "name": "PatientRegistered",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "patients",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "age",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "gender",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "diagnosis",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_age",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_gender",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_diagnosis",
+          "type": "string"
+        }
+      ],
+      "name": "registerPatient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_addr",
+          "type": "address"
+        }
+      ],
+      "name": "getPatient",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+
+  const contractAddress = "0xdc11b7696f893d76a569cc48bbe8ca408051964f2b074c72b10a6ad4d23a36c6"; // Replace this
+
+  window.addEventListener('load', async () => {
+    if (window.ethereum) {
+      web3 = new Web3(window.ethereum);
+      try {
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        account = accounts[0];
+        document.getElementById("status").textContent = `Connected: ${account}`;
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+      } catch (err) {
+        document.getElementById("status").textContent = "Connection failed!";
+        console.error(err);
+      }
+    } else {
+      alert("MetaMask not found. Please install it!");
+    }
+  });
+
+  // Register Patient
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("name").value;
+    const age = document.getElementById("age").value;
+    const gender = document.getElementById("gender").value;
+    const diagnosis = document.getElementById("diagnosis").value;
+
+    try {
+      await contract.methods.registerPatient(name, age, gender, diagnosis)
+        .send({ from: account });
+      alert("Patient Registered Successfully!");
+      document.getElementById("registerForm").reset();
+    } catch (error) {
+      console.error(error);
+      alert("Registration Failed");
+    }
+  });
+
+  // Get Patient Info
+  async function getPatient() {
+    const address = document.getElementById("searchAddress").value;
+    try {
+      const result = await contract.methods.getPatient(address).call();
+      document.getElementById("pName").textContent = result[0];
+      document.getElementById("pAge").textContent = result[1];
+      document.getElementById("pGender").textContent = result[2];
+      document.getElementById("pDiagnosis").textContent = result[3];
+      document.getElementById("patientInfo").classList.remove("d-none");
+    } catch (error) {
+      console.error(error);
+      alert("Could not fetch patient info");
+    }
+  }
+</script>
+
+</body>
+</html>
