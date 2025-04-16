@@ -10,16 +10,36 @@
 
   <style>
     body {
-      background: #f8f9fa;
+      background: linear-gradient(to right, #3b82f6, #14b8a6); /* blue to teal */
       padding-top: 30px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+  
     .card {
-      box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+      background: linear-gradient(135deg, #e6fff7, #f0faff); /* soft mint green to pale sky */
+      box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      padding: 20px;
     }
+  
     .btn {
       width: 100%;
+      background: linear-gradient(90deg, #2563eb, #0d9488); /* blue to teal */
+      border: none;
+      color: white;
+      padding: 10px 0;
+      border-radius: 10px;
+      transition: background 0.3s ease;
+    }
+  
+    .btn:hover {
+      background: linear-gradient(90deg, #1d4ed8, #0f766e);
     }
   </style>
+  
+    
+  
+  
 </head>
 <body>
 
@@ -194,7 +214,7 @@
     }
   ];
 
-  const contractAddress = "0xdc11b7696f893d76a569cc48bbe8ca408051964f2b074c72b10a6ad4d23a36c6"; // Replace this
+  const contractAddress = "0xdcBB5DD9d2a5BdEfB0D57995a1202c84a1c2E525"; // Replace this
 
   window.addEventListener('load', async () => {
     if (window.ethereum) {
@@ -251,3 +271,5 @@
 
 </body>
 </html>
+
+
